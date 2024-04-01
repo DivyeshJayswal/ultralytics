@@ -83,6 +83,8 @@ class SegmentationValidator(DetectionValidator):
         )
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
+        
+    
 
     def _prepare_batch(self, si, batch):
         """Prepares a batch for training or inference by processing images and targets."""
@@ -155,7 +157,30 @@ class SegmentationValidator(DetectionValidator):
                 self.pred_to_json(predn, batch["im_file"][si], pred_masks)
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
+    
+    def dice_score(self, pred, target):
+        """Calculate Dice score for evaluating segmentation performance."""
+        intersection = (pred * target).sum()
+        dice_score = (2. * intersection) / (pred.sum() + target.sum())
+        print_dice_score=print("Dice_score="+ str(dice_score))
+        return 
 
+    def accuracy(self, pred, target):
+        """Calculate accuracy of segmentation predictions."""
+        correct = (pred == target).sum()
+        total = target.numel()
+        accuracy=correct.float() / total
+        print_accuracy= print("accuracy="+ str(accuracy))
+        return print_accuracy
+
+    def iou(self, pred, target):
+        """Calculate Intersection over Union (IoU) for segmentation predictions."""
+        intersection = (pred * target).sum()
+        union = (pred + target).sum() - intersection
+        iou=intersection / union
+        print_iou=print("IOU="+ str(iou))
+        return print_iou
+        
     def finalize_metrics(self, *args, **kwargs):
         """Sets speed and confusion matrix for evaluation metrics."""
         self.metrics.speed = self.speed
